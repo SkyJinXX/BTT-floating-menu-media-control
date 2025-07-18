@@ -1,11 +1,9 @@
--- QQ Music Controls Script
--- 控制QQ音乐的播放、暂停、上一首、下一首
+-- QQ Music Dynamic Menu Icon Controller for BTT Floating Menu
+-- 使用 itemScript 方式直接返回 JSON 更新图标
 
--- 播放/暂停切换
-on togglePlayPause()
+on itemScript(itemUUID)
     try
-        -- 使用绝对路径调用 media-control
-        -- 首先找到 media-control 的路径
+        -- 查找 media-control 路径（参照 position 脚本的方法）
         set mediaControlPath to "/usr/local/bin/media-control"
         
         -- 检查路径是否存在，如果不存在尝试其他常见路径
@@ -22,91 +20,23 @@ on togglePlayPause()
             end try
         end try
         
-        do shell script mediaControlPath & " toggle-play-pause"
-        return "Toggle Play/Pause"
-    on error errorMessage
-        return "Failed to toggle play/pause: " & errorMessage
-    end try
-end togglePlayPause
-
--- 下一首
-on nextTrack()
-    try
-        -- 使用快捷键控制下一首 (Command + Right Arrow)
-        tell application "System Events"
-            tell application "QQMusic" to activate
-            delay 0.1
-            key code 124 using command down
-        end tell
-        return "Next Track"
-    on error
-        return "Failed to skip to next track"
-    end try
-end nextTrack
-
--- 上一首
-on previousTrack()
-    try
-        -- 使用快捷键控制上一首 (Command + Left Arrow)
-        tell application "System Events"
-            tell application "QQMusic" to activate
-            delay 0.1
-            key code 123 using command down
-        end tell
-        return "Previous Track"
-    on error
-        return "Failed to skip to previous track"
-    end try
-end previousTrack
-
--- 增加音量
-on volumeUp()
-    try
-        tell application "System Events"
-            tell application "QQMusic" to activate
-            delay 0.1
-            key code 126 using command down  -- Command + Up Arrow
-        end tell
-        return "Volume Up"
-    on error
-        return "Failed to increase volume"
-    end try
-end volumeUp
-
--- 减少音量
-on volumeDown()
-    try
-        tell application "System Events"
-            tell application "QQMusic" to activate
-            delay 0.1
-            key code 125 using command down  -- Command + Down Arrow
-        end tell
-        return "Volume Down"
-    on error
-        return "Failed to decrease volume"
-    end try
-end volumeDown
-
--- 根据参数执行相应的操作
-on run argv
-    if (count of argv) > 0 then
-        set action to item 1 of argv
+        -- 使用绝对路径获取媒体信息
+        set mediaInfo to (do shell script mediaControlPath & " get 2>/dev/null")
         
-        if action is "toggle" then
-            return togglePlayPause()
-        else if action is "next" then
-            return nextTrack()
-        else if action is "previous" or action is "prev" then
-            return previousTrack()
-        else if action is "volume-up" then
-            return volumeUp()
-        else if action is "volume-down" then
-            return volumeDown()
+        -- 解析JSON数据获取播放状态（参照 position 脚本的方法）
+        set isPlaying to (do shell script "echo '" & mediaInfo & "' | /usr/bin/grep '\"playing\":true' | /usr/bin/wc -l")
+        
+        -- 根据播放状态返回相应的图标 JSON
+        if isPlaying as integer > 0 then
+            -- 正在播放，显示暂停图标（用户点击后会暂停）
+            return "{\"BTTMenuItemSFSymbolName\": \"pause.circle.fill\"}"
         else
-            return "Unknown action: " & action
+            -- 暂停中，显示播放图标（用户点击后会播放）
+            return "{\"BTTMenuItemSFSymbolName\": \"play.circle.fill\"}"
         end if
-    else
-        -- 默认执行播放/暂停
-        return togglePlayPause()
-    end if
-end run 
+        
+    on error
+        -- 任何错误都返回警告图标
+        return "{\"BTTMenuItemSFSymbolName\": \"exclamationmark.triangle\"}"
+    end try
+end itemScript 
