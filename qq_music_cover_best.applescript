@@ -25,8 +25,8 @@ try
     set isQQMusic to (mediaInfo contains "com.tencent.QQMusicMac")
     set isPlaying to (mediaInfo contains "\"playing\":true")
     
-    if isQQMusic and isPlaying then
-        -- QQ音乐正在播放，尝试获取封面
+    if isQQMusic then
+        -- QQ音乐运行中（无论播放还是暂停），尝试获取封面
         try
             -- 使用更复杂但更可靠的方法提取和处理artworkData
             set extractScript to "
@@ -58,12 +58,16 @@ except Exception as e:
             
             set result to (do shell script extractScript)
             
-                         if result starts with "SUCCESS" then
-                return "QQ Music cover updated"
+            if result starts with "SUCCESS" then
+                if isPlaying then
+                    return "QQ Music cover updated (playing)"
+                else
+                    return "QQ Music cover updated (paused)"
+                end if
             else
-                -- Python处理失败，使用默认图片
+                -- 没有封面数据，使用默认图片
                 do shell script "/usr/bin/curl -s -L '" & defaultImageUrl & "' -o '" & coverPath & "'"
-                return "QQ Music default cover"
+                return "QQ Music no artwork - default cover"
             end if
             
         on error pythonError
