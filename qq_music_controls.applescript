@@ -20,11 +20,9 @@ on itemScript(itemUUID)
             end try
         end try
         
-        -- 使用绝对路径获取媒体信息
-        set mediaInfo to (do shell script mediaControlPath & " get 2>/dev/null")
-        
-        -- 解析JSON数据获取播放状态（参照 position 脚本的方法）
-        set isPlaying to (do shell script "echo '" & mediaInfo & "' | /usr/bin/grep '\"playing\":true' | /usr/bin/wc -l")
+        -- 使用绝对路径获取媒体信息并解析播放状态
+        -- 直接通过管道处理，避免引号转义问题
+        set isPlaying to (do shell script mediaControlPath & " get 2>/dev/null | /usr/bin/grep '\"playing\":true' | /usr/bin/wc -l")
         
         -- 根据播放状态返回相应的图标 JSON
         if isPlaying as integer > 0 then
