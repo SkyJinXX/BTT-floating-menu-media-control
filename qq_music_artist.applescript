@@ -1,9 +1,9 @@
--- QQ Music Artist Script (高效 JSON 字段提取)
--- 直接提取 artist 字段，避免处理大量 base64 数据
+-- Media Artist Script (?? JSON ????)
+-- ???? artist ?????????????
 
-on getQQMusicArtist()
+on getMediaArtist()
     try
-        -- 查找 media-control 路径
+        -- ?? media-control ??
         set mediaControlPath to "/usr/local/bin/media-control"
         try
             do shell script "/usr/bin/test -f " & mediaControlPath
@@ -20,28 +20,21 @@ on getQQMusicArtist()
             end try
         end try
         
-        -- 直接提取 artist 字段，使用 Python JSON 解析
+        -- ???? artist ????? Python JSON ??
         set extractCommand to mediaControlPath & " get | /usr/bin/python3 -c \"
 import json
 import sys
 try:
     data = json.load(sys.stdin)
     artist = data.get('artist', 'Unknown Artist')
-    bundle = data.get('bundleIdentifier', '')
-    
-    if 'com.tencent.QQMusicMac' in bundle:
-        print(artist)
-    else:
-        print('Not QQ Music')
+    print(artist)
 except Exception as e:
     print('Error: ' + str(e))
 \""
         
         set result to (do shell script extractCommand)
         
-        if result is "Not QQ Music" then
-            return "QQ Music not active"
-        else if result starts with "Error:" then
+        if result starts with "Error:" then
             return result
         else
             return result
@@ -50,7 +43,7 @@ except Exception as e:
     on error errorMessage
         return "Error: " & errorMessage
     end try
-end getQQMusicArtist
+end getMediaArtist
 
--- 调用函数并返回结果
-getQQMusicArtist() 
+-- ?????????
+getMediaArtist() 

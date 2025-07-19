@@ -1,7 +1,7 @@
--- QQ Music Title Script (高效 JSON 字段提取)
--- 直接提取 title 字段，避免处理大量 base64 数据
+-- Media Title Script (高效 JSON 字段提取)
+-- 直接提取 title 字段，适用于任何媒体播放器
 
-on getQQMusicTitle()
+on getMediaTitle()
     try
         -- 查找 media-control 路径
         set mediaControlPath to "/usr/local/bin/media-control"
@@ -27,21 +27,14 @@ import sys
 try:
     data = json.load(sys.stdin)
     title = data.get('title', 'Unknown Title')
-    bundle = data.get('bundleIdentifier', '')
-    
-    if 'com.tencent.QQMusicMac' in bundle:
-        print(title)
-    else:
-        print('Not QQ Music')
+    print(title)
 except Exception as e:
     print('Error: ' + str(e))
 \""
         
         set result to (do shell script extractCommand)
         
-        if result is "Not QQ Music" then
-            return "QQ Music not active"
-        else if result starts with "Error:" then
+        if result starts with "Error:" then
             return result
         else
             return result
@@ -50,7 +43,7 @@ except Exception as e:
     on error errorMessage
         return "Error: " & errorMessage
     end try
-end getQQMusicTitle
+end getMediaTitle
 
 -- 调用函数并返回结果
-getQQMusicTitle() 
+getMediaTitle() 
